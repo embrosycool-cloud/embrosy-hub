@@ -111,8 +111,8 @@ local sg = Instance.new("ScreenGui", playerGui)
 sg.Name = "AdminHUB_V4"
 sg.ResetOnSpawn = false
 
--- Menu principal
-local main = createBaseFrame("MAIN MENU (K)", UDim2.new(0, 230, 0, 290), UDim2.new(0.5, -240, 0.5, -145))
+-- Menu principal (Taille optimisée pour 5 boutons)
+local main = createBaseFrame("MAIN MENU (K)", UDim2.new(0, 230, 0, 295), UDim2.new(0.5, -240, 0.5, -145))
 main.Parent = sg
 main.Visible = true 
 
@@ -124,7 +124,7 @@ local sBtn = createBtn(main, "💾 SAVE POSITION", 55, C.green)
 local lBtn = createBtn(main, "🔁 LOAD POSITION", 100, Color3.fromRGB(40, 40, 50))
 local rBtn = createBtn(main, "AUTO RETURN: OFF", 145, Color3.fromRGB(30, 30, 35))
 local fBtn = createBtn(main, "⏩ TP FORWARD (5 STUDS)", 190, C.orange)
-local uBtn = createBtn(main, "🔼 TP UPWARDS (15 STUDS)", 235, C.purple)
+local uBtn = createBtn(main, "🔼 TP UPWARDS (20 STUDS)", 235, C.purple)
 
 sBtn.MouseButton1Click:Connect(function()
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
@@ -168,11 +168,11 @@ fBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Logique TP Upwards (15 studs)
+-- Logique TP Upwards (20 studs)
 uBtn.MouseButton1Click:Connect(function()
     local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     if hrp then
-        hrp.CFrame = hrp.CFrame * CFrame.new(0, 15, 0)
+        hrp.CFrame = hrp.CFrame * CFrame.new(0, 20, 0)
         local oldColor = uBtn.BackgroundColor3
         uBtn.BackgroundColor3 = C.white
         task.wait(0.1)
@@ -204,7 +204,7 @@ rfBtn.MouseButton1Click:Connect(function()
     rfBtn.BackgroundColor3 = autoReturnT and Color3.fromRGB(130, 50, 200) or Color3.fromRGB(30, 30, 35)
 end)
 
--- Touches
+-- Touches de raccourci
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == Enum.KeyCode.K then main.Visible = not main.Visible end
