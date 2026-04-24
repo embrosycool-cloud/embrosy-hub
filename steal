@@ -111,13 +111,15 @@ local sg = Instance.new("ScreenGui", playerGui)
 sg.Name = "AdminHUB_V4"
 sg.ResetOnSpawn = false
 
--- Menu principal (Taille optimisée pour 5 boutons)
+-- Menu principal (K) - Visible par défaut
 local main = createBaseFrame("MAIN MENU (K)", UDim2.new(0, 230, 0, 295), UDim2.new(0.5, -240, 0.5, -145))
 main.Parent = sg
 main.Visible = true 
 
+-- Menu First Spot (T) - Modifié pour être visible par défaut aussi
 local tMenu = createBaseFrame("FIRST SPOT (T)", UDim2.new(0, 230, 0, 150), UDim2.new(0.5, 10, 0.5, -100))
 tMenu.Parent = sg
+tMenu.Visible = true 
 
 -- Boutons Menu K
 local sBtn = createBtn(main, "💾 SAVE POSITION", 55, C.green)
