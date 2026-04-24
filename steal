@@ -1,0 +1,212 @@
+local Players          = game:GetService("Players")
+local TweenService     = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local player    = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local savedPosition   = nil
+local firstSpot       = nil
+local autoReturn      = false
+local autoReturnT     = false
+
+-- Capture First Spot améliorée
+local function onChar(char)
+    local hrp = char:WaitForChild("HumanoidRootPart", 5)
+    if hrp and not firstSpot then
+        firstSpot = hrp.CFrame
+    end
+end
+if player.Character then onChar(player.Character) end
+player.CharacterAdded:Connect(onChar)
+
+local C = {
+    bg = Color3.fromRGB(10, 10, 12),
+    orange = Color3.fromRGB(255, 140, 20),
+    orangeGlow = Color3.fromRGB(255, 110, 0),
+    green = Color3.fromRGB(60, 220, 110),
+    sky = Color3.fromRGB(70, 155, 255),
+    white = Color3.fromRGB(255, 255, 255),
+    purple = Color3.fromRGB(140, 80, 255)
+}
+
+-- Fonction UI
+local function createBaseFrame(name, size, pos)
+    local f = Instance.new("Frame")
+    f.Name = name
+    f.Size = size
+    f.Position = pos
+    f.BackgroundColor3 = C.bg
+    f.BorderSizePixel = 0
+    f.Visible = false
+    f.Parent = nil 
+    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 15)
+    
+    local stroke = Instance.new("UIStroke", f)
+    stroke.Thickness = 2
+    stroke.Color = C.orange
+    
+    local glow = Instance.new("ImageLabel", f)
+    glow.BackgroundTransparency = 1
+    glow.Position = UDim2.new(0, -15, 0, -15)
+    glow.Size = UDim2.new(1, 30, 1, 30)
+    glow.Image = "rbxassetid://5028857084"
+    glow.ImageColor3 = C.orangeGlow
+    glow.ImageTransparency = 0.5
+    glow.ScaleType = Enum.ScaleType.Slice
+    glow.SliceCenter = Rect.new(24, 24, 276, 276)
+    
+    local bar = Instance.new("Frame", f)
+    bar.Size = UDim2.new(1, 0, 0, 40)
+    bar.BackgroundColor3 = Color3.fromRGB(20, 18, 25)
+    bar.BorderSizePixel = 0
+    Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 15)
+    
+    local txt = Instance.new("TextLabel", bar)
+    txt.Text = name
+    txt.Size = UDim2.new(1, -20, 1, 0)
+    txt.Position = UDim2.new(0, 15, 0, 0)
+    txt.BackgroundTransparency = 1
+    txt.TextColor3 = C.orange
+    txt.Font = Enum.Font.GothamBold
+    txt.TextSize = 14
+    txt.TextXAlignment = Enum.TextXAlignment.Left
+
+    local dragging, dragStart, startPos
+    bar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = f.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+            local delta = input.Position - dragStart
+            f.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+    end)
+
+    return f
+end
+
+local function createBtn(parent, text, y, color)
+    local b = Instance.new("TextButton", parent)
+    b.Size = UDim2.new(1, -20, 0, 40)
+    b.Position = UDim2.new(0, 10, 0, y)
+    b.BackgroundColor3 = color
+    b.Text = text
+    b.TextColor3 = C.white
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 12
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+    return b
+end
+
+-- Création des menus
+local sg = Instance.new("ScreenGui", playerGui)
+sg.Name = "AdminHUB_V4"
+sg.ResetOnSpawn = false
+
+-- Menu principal
+local main = createBaseFrame("MAIN MENU (K)", UDim2.new(0, 230, 0, 290), UDim2.new(0.5, -240, 0.5, -145))
+main.Parent = sg
+main.Visible = true 
+
+local tMenu = createBaseFrame("FIRST SPOT (T)", UDim2.new(0, 230, 0, 150), UDim2.new(0.5, 10, 0.5, -100))
+tMenu.Parent = sg
+
+-- Boutons Menu K
+local sBtn = createBtn(main, "💾 SAVE POSITION", 55, C.green)
+local lBtn = createBtn(main, "🔁 LOAD POSITION", 100, Color3.fromRGB(40, 40, 50))
+local rBtn = createBtn(main, "AUTO RETURN: OFF", 145, Color3.fromRGB(30, 30, 35))
+local fBtn = createBtn(main, "⏩ TP FORWARD (5 STUDS)", 190, C.orange)
+local uBtn = createBtn(main, "🔼 TP UPWARDS (15 STUDS)", 235, C.purple)
+
+sBtn.MouseButton1Click:Connect(function()
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        savedPosition = player.Character.HumanoidRootPart.CFrame
+        lBtn.BackgroundColor3 = C.sky
+        sBtn.Text = "✅ SAVED"
+        task.wait(0.5)
+        sBtn.Text = "💾 SAVE POSITION"
+    end
+end)
+
+lBtn.MouseButton1Click:Connect(function()
+    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if hrp and savedPosition then
+        if autoReturn then
+            local old = hrp.CFrame
+            hrp.CFrame = savedPosition
+            task.wait(0.1)
+            hrp.CFrame = old
+        else
+            hrp.CFrame = savedPosition
+        end
+    end
+end)
+
+rBtn.MouseButton1Click:Connect(function()
+    autoReturn = not autoReturn
+    rBtn.Text = autoReturn and "AUTO RETURN: ON" or "AUTO RETURN: OFF"
+    rBtn.BackgroundColor3 = autoReturn and Color3.fromRGB(130, 50, 200) or Color3.fromRGB(30, 30, 35)
+end)
+
+-- Logique TP Forward (5 studs)
+fBtn.MouseButton1Click:Connect(function()
+    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -5)
+        local oldColor = fBtn.BackgroundColor3
+        fBtn.BackgroundColor3 = C.white
+        task.wait(0.1)
+        fBtn.BackgroundColor3 = oldColor
+    end
+end)
+
+-- Logique TP Upwards (15 studs)
+uBtn.MouseButton1Click:Connect(function()
+    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        hrp.CFrame = hrp.CFrame * CFrame.new(0, 15, 0)
+        local oldColor = uBtn.BackgroundColor3
+        uBtn.BackgroundColor3 = C.white
+        task.wait(0.1)
+        uBtn.BackgroundColor3 = oldColor
+    end
+end)
+
+-- Boutons Menu T
+local lfBtn = createBtn(tMenu, "🚀 LOAD FIRST SPOT", 55, C.sky)
+local rfBtn = createBtn(tMenu, "AUTO RETURN: OFF", 100, Color3.fromRGB(30, 30, 35))
+
+lfBtn.MouseButton1Click:Connect(function()
+    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if hrp and firstSpot then
+        if autoReturnT then
+            local old = hrp.CFrame
+            hrp.CFrame = firstSpot
+            task.wait(0.1)
+            hrp.CFrame = old
+        else
+            hrp.CFrame = firstSpot
+        end
+    end
+end)
+
+rfBtn.MouseButton1Click:Connect(function()
+    autoReturnT = not autoReturnT
+    rfBtn.Text = autoReturnT and "AUTO RETURN: ON" or "AUTO RETURN: OFF"
+    rfBtn.BackgroundColor3 = autoReturnT and Color3.fromRGB(130, 50, 200) or Color3.fromRGB(30, 30, 35)
+end)
+
+-- Touches
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.K then main.Visible = not main.Visible end
+    if input.KeyCode == Enum.KeyCode.T then tMenu.Visible = not tMenu.Visible end
+end)
