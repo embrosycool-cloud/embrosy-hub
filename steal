@@ -30,7 +30,7 @@ local C = {
     purple = Color3.fromRGB(140, 80, 255)
 }
 
--- Fonction UI
+-- Fonction UI avec support Drag Mobile/PC
 local function createBaseFrame(name, size, pos)
     local f = Instance.new("Frame")
     f.Name = name
@@ -40,6 +40,7 @@ local function createBaseFrame(name, size, pos)
     f.BorderSizePixel = 0
     f.Visible = false
     f.Parent = nil 
+    f.Active = true -- Important pour le drag mobile
     Instance.new("UICorner", f).CornerRadius = UDim.new(0, 15)
     
     local stroke = Instance.new("UIStroke", f)
@@ -72,22 +73,38 @@ local function createBaseFrame(name, size, pos)
     txt.TextSize = 14
     txt.TextXAlignment = Enum.TextXAlignment.Left
 
-    local dragging, dragStart, startPos
+    -- Système de Drag compatible Mobile (Touch) et PC (Mouse)
+    local dragging, dragInput, dragStart, startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        f.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+
     bar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
             startPos = f.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
         end
     end)
+
+    bar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
     UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
-            local delta = input.Position - dragStart
-            f.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        if input == dragInput and dragging then
+            update(input)
         end
-    end)
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
     end)
 
     return f
@@ -111,12 +128,12 @@ local sg = Instance.new("ScreenGui", playerGui)
 sg.Name = "AdminHUB_V4"
 sg.ResetOnSpawn = false
 
--- Menu principal (K) - Visible par défaut
+-- Menu principal (K)
 local main = createBaseFrame("MAIN MENU (K)", UDim2.new(0, 230, 0, 295), UDim2.new(0.5, -240, 0.5, -145))
 main.Parent = sg
 main.Visible = true 
 
--- Menu First Spot (T) - Modifié pour être visible par défaut aussi
+-- Menu First Spot (T)
 local tMenu = createBaseFrame("FIRST SPOT (T)", UDim2.new(0, 230, 0, 150), UDim2.new(0.5, 10, 0.5, -100))
 tMenu.Parent = sg
 tMenu.Visible = true 
@@ -158,7 +175,6 @@ rBtn.MouseButton1Click:Connect(function()
     rBtn.BackgroundColor3 = autoReturn and Color3.fromRGB(130, 50, 200) or Color3.fromRGB(30, 30, 35)
 end)
 
--- Logique TP Forward (5 studs)
 fBtn.MouseButton1Click:Connect(function()
     local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     if hrp then
@@ -170,7 +186,6 @@ fBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Logique TP Upwards (20 studs)
 uBtn.MouseButton1Click:Connect(function()
     local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     if hrp then
@@ -206,7 +221,7 @@ rfBtn.MouseButton1Click:Connect(function()
     rfBtn.BackgroundColor3 = autoReturnT and Color3.fromRGB(130, 50, 200) or Color3.fromRGB(30, 30, 35)
 end)
 
--- Touches de raccourci
+-- Touches de raccourci (PC)
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == Enum.KeyCode.K then main.Visible = not main.Visible end
