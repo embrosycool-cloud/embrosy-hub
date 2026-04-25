@@ -123,13 +123,13 @@ local sg = Instance.new("ScreenGui", playerGui)
 sg.Name = "AdminHUB_V4"
 sg.ResetOnSpawn = false
 
--- Menu principal (K)
-local main = createBaseFrame("MAIN MENU (K / C)", UDim2.new(0, 230, 0, 295), UDim2.new(0.5, -240, 0.5, -145))
+-- Menu principal (K) - Poussé au maximum à GAUCHE
+local main = createBaseFrame("MAIN MENU (K / C)", UDim2.new(0, 230, 0, 295), UDim2.new(0.5, -450, 0.5, -145))
 main.Parent = sg
 main.Visible = true 
 
--- Menu First Spot (T)
-local tMenu = createBaseFrame("FIRST SPOT (T / R)", UDim2.new(0, 230, 0, 150), UDim2.new(0.5, 10, 0.5, -100))
+-- Menu First Spot (T) - Poussé au maximum à DROITE
+local tMenu = createBaseFrame("FIRST SPOT (T / R)", UDim2.new(0, 230, 0, 150), UDim2.new(0.5, 220, 0.5, -100))
 tMenu.Parent = sg
 tMenu.Visible = true 
 
@@ -221,5 +221,5 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     if input.KeyCode == Enum.KeyCode.K then main.Visible = not main.Visible end
     if input.KeyCode == Enum.KeyCode.T then tMenu.Visible = not tMenu.Visible end
     if input.KeyCode == Enum.KeyCode.R then teleportToFirstSpot() end 
-    if input.KeyCode == Enum.KeyCode.C then teleportForward() end -- Nouvelle Keybind C
+    if input.KeyCode == Enum.KeyCode.C then teleportForward() end 
 end)
